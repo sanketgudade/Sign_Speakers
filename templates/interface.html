@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Translator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .camera-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-feed {
+            flex-grow: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-dot.active {
+            background-color: #28a745;
+        }
+
+        .prediction-display {
+            font-size: 5rem;
+            text-align: center;
+            color: #0d6efd;
+            margin: 10px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sentence-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sentence-display {
+            font-size: 1.5rem;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            min-height: 100px;
+            border: 1px solid #dee2e6;
+            white-space: pre-wrap;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .translation-result {
+            padding: 15px;
+            background-color: #fff3cd;
+            border-radius: 5px;
+            min-height: 100px;
+            border: 1px solid #ffecb5;
+            overflow-y: auto;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .language-select {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .prediction-display {
+                font-size: 3rem;
+                min-height: 80px;
+            }
+            
+            .sentence-display {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="text-center mb-4">
+            <h1 class="display-4">Sign Language Translator</h1>
+            <p class="lead">Real-time sign language to text with speech and translation</p>
+        </header>
+
+        <div class="row g-4" style="min-height: 70vh;">
+            <!-- Camera Feed -->
+            <div class="col-lg-6">
+                <div class="card camera-container">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Camera Feed</h3>
+                    </div>
+                    <div class="card-body p-0 video-feed">
+                        <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Camera Feed">
+                        <div class="status-indicator">
+                            <span class="status-dot active"></span>
+                            <span class="status-text">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recognition Results -->
+            <div class="col-lg-6">
+                <div class="card sentence-container">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title mb-0">Translation Panel</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="current-prediction mb-3">
+                            <h5>Current Prediction:</h5>
+                            <div id="currentPrediction" class="prediction-display">?</div>
+                        </div>
+                        
+                        <div class="sentence-builder mb-3 flex-grow-1 d-flex flex-column">
+                            <h5>Your Sentence:</h5>
+                            <div id="sentenceDisplay" class="sentence-display mb-2" contenteditable="true">Show a sign to begin</div>
+                        </div>
+
+                        <div class="controls-row mb-3">
+                            <button id="clearBtn" class="btn btn-danger control-btn">
+                                <i class="bi bi-trash"></i> Clear
+                            </button>
+                            <button id="speakBtn" class="btn btn-primary control-btn">
+                                <i class="bi bi-megaphone"></i> Speak
+                            </button>
+                            <button id="downloadBtn" class="btn btn-secondary control-btn">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </div>
+
+                        <div class="translation-section">
+                            <h5>Translation</h5>
+                            <div class="input-group mb-3">
+                                <select id="languageSelect" class="form-select language-select">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="it">Italian</option>
+                                    <option value="pt">Portuguese</option>
+                                    <option value="ru">Russian</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="hi">Hindi</option>
+                                    <option value="mr">Marathi</option>
+                                </select>
+                                <button id="translateBtn" class="btn btn-warning">
+                                    <i class="bi bi-translate"></i> Translate
+                                </button>
+                            </div>
+                            <div id="translationResult" class="translation-result">
+                                Translation will appear here
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-4 text-muted">
+            <p>Sign Language Translator &copy; 2023</p>
+        </footer>
+    </div>
+
+    <audio id="audioPlayer" hidden></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const currentPrediction = document.getElementById('currentPrediction');
+            const sentenceDisplay = document.getElementById('sentenceDisplay');
+            const clearBtn = document.getElementById('clearBtn');
+            const speakBtn = document.getElementById('speakBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const translateBtn = document.getElementById('translateBtn');
+            const languageSelect = document.getElementById('languageSelect');
+            const translationResult = document.getElementById('translationResult');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            // State variables
+            let lastPredictionTime = 0;
+            let audioUrl = '';
+            
+            // Initialize
+            updateButtonStates();
+            
+            // Event listeners
+            clearBtn.addEventListener('click', clearSentence);
+            speakBtn.addEventListener('click', speakSentence);
+            downloadBtn.addEventListener('click', downloadAudio);
+            translateBtn.addEventListener('click', translateSentence);
+            
+            // Check prediction every 500ms
+            setInterval(checkPrediction, 500);
+            
+            function checkPrediction() {
+                const now = Date.now();
+                // Only check prediction every 4 seconds
+                if (now - lastPredictionTime < 4000) return;
+                
+                fetch('/get_prediction')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.prediction) {
+                            lastPredictionTime = now;
+                            
+                            // Update current prediction display
+                            currentPrediction.textContent = data.prediction;
+                            currentPrediction.classList.add('pulse');
+                            setTimeout(() => currentPrediction.classList.remove('pulse'), 300);
+                            
+                            // Update sentence
+                            if (data.prediction === 'ENTER') {
+                                // No action needed for ENTER
+                            } else if (data.prediction === ' ') {
+                                addToSentence(' ');
+                            } else if (data.prediction.length === 1) {
+                                addToSentence(data.prediction);
+                            }
+                        }
+                    })
+                    .catch(console.error);
+            }
+            
+            function addToSentence(text) {
+                if (sentenceDisplay.textContent === 'Show a sign to begin') {
+                    sentenceDisplay.textContent = text;
+                } else {
+                    sentenceDisplay.textContent += text;
+                }
+                updateButtonStates();
+            }
+            
+            function updateButtonStates() {
+                const hasContent = sentenceDisplay.textContent.trim().length > 0 && 
+                                 sentenceDisplay.textContent !== 'Show a sign to begin';
+                speakBtn.disabled = !hasContent;
+                downloadBtn.disabled = !hasContent;
+                translateBtn.disabled = !hasContent;
+            }
+            
+            function clearSentence() {
+                sentenceDisplay.textContent = 'Show a sign to begin';
+                currentPrediction.textContent = '?';
+                translationResult.textContent = 'Translation will appear here';
+                updateButtonStates();
+            }
+            
+            function speakSentence() {
+                const text = sentenceDisplay.textContent;
+                if (!text || text === 'Show a sign to begin') return;
+                
+                fetch('/text_to_speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        lang: languageSelect.value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        audioUrl = data.audio_url;
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.play();
+                    } else {
+                        alert('Error: ' + (data.error || 'Speech generation failed'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Failed to generate speech');
+                });
+            }
+            
+            function downloadAudio() {
+                if (!audioUrl) return;
+                const link = document.createElement('a');
+                link.href = audioUrl;
+                link.download = 'sign-language-speech.mp3';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            function translateSentence() {
+                const text = sentenceDisplay.textContent;
+                if (!text || text === 'Show a sign to begin') return;
+                
+                fetch('/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        lang: languageSelect.value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    translationResult.textContent = data.status === 'success' 
+                        ? data.translation 
+                        : 'Error: ' + (data.error || 'Translation failed');
+                })
+                .catch(err => {
+                    console.error(err);
+                    translationResult.textContent = 'Translation error occurred';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-dot.active {
+    background-color: #28a745;
+}
+
+.status-dot.inactive {
+    background-color: #dc3545;
+}
+
+.prediction-display {
+    font-size: 5rem;
+    text-align: center;
+    color: #0d6efd;
+    margin: 20px 0;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sentence-display {
+    font-size: 1.5rem;
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    min-height: 80px;
+    border: 1px solid #dee2e6;
+}
+
+.translation-result {
+    padding: 15px;
+    background-color: #fff3cd;
+    border-radius: 5px;
+    min-height: 80px;
+    border: 1px solid #ffecb5;
+}
+
+.btn {
+    transition: all 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+#videoFeed {
+    background-color: #333;
+}
+
+@media (max-width: 768px) {
+    .prediction-display {
+        font-size: 3rem;
+        min-height: 90px;
+    }
+    
+    .sentence-display {
+        font-size: 1.2rem;
+    }
+}

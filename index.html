@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSpeakers - Sign Language to Text & Speech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-light: #4285f4;
+            --primary-lighter: #e8f0fe;
+            --secondary: #0d47a1;
+            --accent: #fbbc04;
+            --light: #ffffff;
+            --light-gray: #f8f9fa;
+            --dark: #202124;
+            --text: #3c4043;
+            --success: #34a853;
+            --error: #ea4335;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Segoe UI', sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--light);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo i {
+            color: var(--accent);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            bottom: -6px;
+            left: 0;
+            background-color: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 24px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--light);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-lighter);
+            transform: translateY(-2px);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--light-gray) 0%, var(--primary-lighter) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            color: var(--text);
+        }
+        
+        .hero-image {
+            width: 100%;
+            max-width: 900px;
+            margin: 3rem auto;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transform: perspective(1000px) rotateX(10deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .hero-image:hover {
+            transform: perspective(1000px) rotateX(0);
+        }
+        
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            padding: 5rem 2rem;
+            background-color: var(--light);
+        }
+        
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--text);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .stat-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+        
+        .chart-container {
+            background: var(--light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            margin: 3rem auto;
+            max-width: 900px;
+        }
+        
+        /* Why Important Section */
+        .importance-section {
+            padding: 5rem 2rem;
+            background-color: var(--primary-lighter);
+        }
+        
+        .importance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .importance-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .importance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .importance-icon {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-lighter);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .importance-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        /* Image Gallery */
+        .gallery-section {
+            padding: 5rem 2rem;
+            background-color: var(--light);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .gallery-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            height: 250px;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--light);
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta-section p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            opacity: 0.9;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: var(--light);
+            padding: 4rem 2rem 2rem;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--light);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-logo i {
+            color: var(--accent);
+        }
+        
+        .footer-about p {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+        
+        .footer-links h3, .footer-contact h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--light);
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: var(--light);
+            opacity: 0.8;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+        }
+        
+        .footer-contact p {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.7;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-stat {
+            animation: fadeIn 0.8s ease forwards;
+        }
+        
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+        .delay-4 { animation-delay: 0.8s; }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <i class="fas fa-hands"></i>
+            <span>SignSpeakers</span>
+        </a>
+        
+        <div class="nav-links">
+            <a href="#home" class="active">Home</a>
+            <a href="#stats">Statistics</a>
+            <a href="#importance">Why Important</a>
+            <a href="#gallery">Gallery</a>
+            <a href="#contact">Contact</a>
+        </div>
+        
+        <div class="auth-buttons">
+            <button class="btn btn-outline" onclick="window.location.href='http://localhost/SIGNSPEECH/auth.php'">Login</button>
+
+            <button class="btn btn-primary" id="demoButton">Try Demo</button>
+        </div>
+        
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu" style="display: none;">
+        <a href="#home" class="active">Home</a>
+        <a href="#stats">Statistics</a>
+        <a href="#importance">Why Important</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#contact">Contact</a>
+        <div class="auth-buttons">
+            <button class="btn btn-outline">Login</button>
+            <button class="btn btn-primary">Try Demo</button>
+        </div>
+    </div>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <h1 class="animate__animated animate__fadeInDown">Breaking Communication Barriers</h1>
+        <p class="animate__animated animate__fadeInDown animate__delay-1s">SignSpeakers converts sign language to text and speech in real-time, empowering the deaf and hard of hearing community</p>
+        
+        <div class="hero-buttons animate__animated animate__fadeInDown animate__delay-2s">
+            <button class="btn btn-primary" id="demoButton2">
+                Try Live Demo <i class="fas fa-hand-paper"></i>
+            </button>
+            <button class="btn btn-outline">
+                Learn How It Works <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <div class="hero-image animate__animated animate__fadeInUp animate__delay-3s">
+            <img src="sign.jpg" alt="Person using sign language" loading="lazy">
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats-section" id="stats">
+        <div class="stats-container">
+            <div class="section-title">
+                <h2>The Global Challenge</h2>
+                <p>Understanding the scale of hearing and speech impairments worldwide</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card animate-stat delay-1">
+                    <div class="stat-number">1.5B+</div>
+                    <div class="stat-label">People globally affected by hearing loss</div>
+                </div>
+                
+                <div class="stat-card animate-stat delay-2">
+                    <div class="stat-number">430M</div>
+                    <div class="stat-label">With disabling hearing loss</div>
+                </div>
+                
+                <div class="stat-card animate-stat delay-3">
+                    <div class="stat-number">63M</div>
+                    <div class="stat-label">In India with auditory impairment</div>
+                </div>
+               
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="hearingLossChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="indiaChart"></canvas>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Why Important Section -->
+    <section class="importance-section" id="importance">
+        <div class="stats-container">
+            <div class="section-title">
+                <h2>Why SignSpeakers Matters</h2>
+                <p>Transforming lives through accessible communication technology</p>
+            </div>
+            
+            <div class="importance-grid">
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Bridging Communication Gaps</h3>
+                    <p>Enables seamless conversation between sign language users and those who don't understand it, eliminating the need for human interpreters in many situations.</p>
+                </div>
+                
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Enhancing Social Inclusion</h3>
+                    <p>Reduces isolation by empowering deaf and hard of hearing individuals to participate fully in social interactions, education, and public life.</p>
+                </div>
+                
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-briefcase-medical"></i>
+                    </div>
+                    <h3>Improving Access to Services</h3>
+                    <p>Ensures equal access to healthcare, legal services, and emergency situations where clear communication is critical.</p>
+                </div>
+                
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>Educational Opportunities</h3>
+                    <p>Helps students with hearing impairments access information and express themselves effectively in learning environments.</p>
+                </div>
+                
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Employment Access</h3>
+                    <p>Opens up more job opportunities by reducing communication barriers in the workplace.</p>
+                </div>
+                
+                <div class="importance-card">
+                    <div class="importance-icon">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <h3>Economic Impact</h3>
+                    <p>Addressing hearing loss could save the global economy $980 billion annually in lost productivity and societal costs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Gallery Section -->
+    <section class="gallery-section" id="gallery">
+        <div class="stats-container">
+            <div class="section-title">
+                <h2>Our Impact in Action</h2>
+                <p>See how SignSpeakers is making a difference</p>
+            </div>
+            
+            <div class="gallery">
+                <div class="gallery-item">
+                    <img src="sign1.jpg" alt="Child learning sign language" loading="lazy">
+                </div>
+                <div class="gallery-item">
+                    <img src="sign2.jpg" alt="Sign language interpreter" loading="lazy">
+                </div>
+                <div class="gallery-item">
+                    <img src="sign3.jpg" alt="Classroom with diverse students" loading="lazy">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://www.signsolutions.uk.com/wp-content/uploads/2022/11/AdobeStock_119534501-1024x682.jpeg" alt="Team working on technology" loading="lazy">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://media.istockphoto.com/id/1415614744/photo/young-attractive-asian-women-using-sign-hand-finger-language-conversation-with-deaf-person.jpg?s=612x612&w=0&k=20&c=_woH6LuG4o5CLxMYKZlBrFDxj-Fat-RZ2MUMCDjblHU=" alt="Woman using sign language" loading="lazy">
+                </div>
+                <div class="gallery-item">
+                    <img src="sign5.jpg" alt="Technology helping communication" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to Experience SignSpeakers?</h2>
+        <p>Join us in breaking down communication barriers and creating a more inclusive world</p>
+        <button class="btn btn-primary" id="demoButton3">
+            Try Live Demo Now <i class="fas fa-hand-paper"></i>
+        </button>
+    </section>
+    
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-container">
+            <div class="footer-about">
+                <a href="#" class="footer-logo">
+                    <i class="fas fa-hands"></i>
+                    <span>SignSpeakers</span>
+                </a>
+                <p>Making communication accessible for everyone through innovative technology.</p>
+                <div class="social-links" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#stats">Statistics</a></li>
+                    <li><a href="#importance">Why Important</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Tech Street, Bangalore, India</p>
+                <p><i class="fas fa-envelope"></i> hello@signspeakers.com</p>
+                <p><i class="fas fa-phone"></i> +91 9876543210</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2023 SignSpeakers. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- Demo Page (hidden initially) -->
+    <div id="demoPage" style="display: none; min-height: 100vh; padding-top: 6rem; background-color: var(--light-gray);">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <button class="btn btn-outline" id="backFromDemo">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </button>
+                <a href="#" class="logo">
+                    <i class="fas fa-hands"></i>
+                    <span>SignSpeakers</span>
+                </a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+                <div style="position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.1); background: black; aspect-ratio: 16/9;">
+                    <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <canvas id="canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+                </div>
+                
+                <div style="background: var(--light); border-radius: 16px; padding: 1.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                        <span style="font-weight: 600; color: var(--dark); font-size: 1.2rem;">Translation Output</span>
+                        <button id="helpButton" class="btn btn-outline" style="padding: 0.4rem 0.8rem;">
+                            <i class="fas fa-question-circle"></i> Help
+                        </button>
+                    </div>
+                    
+                    <div id="output-text" style="flex-grow: 1; min-height: 200px; padding: 1rem; border: 1px solid #eee; border-radius: 8px; margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; overflow-y: auto; background-color: var(--light-gray);">
+                        Your translated text will appear here...
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <button id="speak-btn" class="btn btn-primary">
+                            <i class="fas fa-volume-up"></i> Speak
+                        </button>
+                        <button id="copy-btn" class="btn btn-outline">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button id="clear-btn" class="btn btn-outline">
+                            <i class="fas fa-trash-alt"></i> Clear
+                        </button>
+                        <button id="save-btn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                    
+                    <div id="status" style="margin-top: 1.5rem; padding: 0.8rem; border-radius: 8px; background-color: var(--light-gray); text-align: center; font-size: 0.9rem;">
+                        <i class="fas fa-circle-notch fa-spin"></i> Initializing camera...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // DOM Elements
+        const demoButtons = document.querySelectorAll('#demoButton, #demoButton2, #demoButton3');
+        const backFromDemo = document.getElementById('backFromDemo');
+        const helpButton = document.getElementById('helpButton');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        // Demo Page Elements
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const outputText = document.getElementById('output-text');
+        const copyBtn = document.getElementById('copy-btn');
+        const speakBtn = document.getElementById('speak-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const statusDiv = document.getElementById('status');
+        
+        // App State
+        let isProcessing = false;
+        let processingInterval;
+        let savedTexts = [];
+        
+        // Event Listeners
+        demoButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('main').style.display = 'none';
+                document.getElementById('demoPage').style.display = 'block';
+                initApp();
+            });
+        });
+        
+        backFromDemo.addEventListener('click', () => {
+            document.getElementById('demoPage').style.display = 'none';
+            document.querySelector('main').style.display = 'block';
+            stopWebcam();
+        });
+        
+        helpButton.addEventListener('click', () => {
+            alert("Help Guide:\n\n1. Allow camera access when prompted\n2. Show ASL hand signs to the camera\n3. View the converted text in the output box\n4. Use the buttons to copy, speak, or save the text\n\nTips:\n- Ensure good lighting\n- Keep your hands visible\n- Make clear gestures");
+        });
+        
+        copyBtn.addEventListener('click', copyText);
+        speakBtn.addEventListener('click', speakText);
+        clearBtn.addEventListener('click', clearText);
+        saveBtn.addEventListener('click', saveText);
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.style.display = mobileMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+        
+        // Initialize Charts
+        function initCharts() {
+            // Global Hearing Loss Chart
+            const hearingLossCtx = document.getElementById('hearingLossChart').getContext('2d');
+            new Chart(hearingLossCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mild Hearing Loss', 'Moderate Hearing Loss', 'Severe Hearing Loss', 'Profound Hearing Loss'],
+                    datasets: [{
+                        label: 'Number of People (Millions)',
+                        data: [700, 430, 150, 70],
+                        backgroundColor: [
+                            'rgba(26, 115, 232, 0.7)',
+                            'rgba(66, 133, 244, 0.7)',
+                            'rgba(66, 133, 244, 0.7)',
+                            'rgba(13, 71, 161, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(26, 115, 232, 1)',
+                            'rgba(66, 133, 244, 1)',
+                            'rgba(66, 133, 244, 1)',
+                            'rgba(13, 71, 161, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Global Hearing Loss Statistics (Millions of People)',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // India Hearing Loss Chart
+            const indiaCtx = document.getElementById('indiaChart').getContext('2d');
+            new Chart(indiaCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Children (0-14 years)', 'Adults (15-64 years)', 'Elderly (65+ years)'],
+                    datasets: [{
+                        data: [4.5, 45, 13.5],
+                        backgroundColor: [
+                            'rgba(251, 188, 4, 0.7)',
+                            'rgba(26, 115, 232, 0.7)',
+                            'rgba(234, 67, 53, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(251, 188, 4, 1)',
+                            'rgba(26, 115, 232, 1)',
+                            'rgba(234, 67, 53, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Hearing Loss in India by Age Group (Millions)',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize the application
+        async function initApp() {
+            try {
+                statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Initializing camera...';
+                
+                // Initialize webcam
+                await initWebcam();
+                
+                // Set canvas size to match video
+                const stream = video.srcObject;
+                const tracks = stream.getVideoTracks();
+                const settings = tracks[0].getSettings();
+                canvas.width = settings.width;
+                canvas.height = settings.height;
+                
+                // Start processing frames
+                startProcessing();
+                
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Ready - Show your hand signs to the camera';
+                statusDiv.classList.add('active');
+            } catch (error) {
+                statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> Error: ${error.message}`;
+                statusDiv.classList.add('error');
+                console.error("Initialization error:", error);
+            }
+        }
+        
+        // Initialize webcam
+        async function initWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: "user"
+                    },
+                    audio: false
+                });
+                video.srcObject = stream;
+                
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        resolve(video);
+                    };
+                });
+            } catch (err) {
+                throw new Error("Could not access the webcam. Please ensure you've granted camera permissions.");
+            }
+        }
+        
+        // Stop webcam
+        function stopWebcam() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            if (processingInterval) {
+                clearInterval(processingInterval);
+            }
+        }
+        
+        // Start processing frames
+        function startProcessing() {
+            // Process a frame every 200ms to balance performance and responsiveness
+            processingInterval = setInterval(processFrame, 200);
+        }
+        
+        // Process a single frame
+        async function processFrame() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            
+            try {
+                // Draw video frame to canvas
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Get image data
+                const imageData = canvas.toDataURL('image/jpeg');
+                
+                // Simulate processing (replace with actual API call)
+                // In a real app, you would send this to your Flask backend
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // For demo purposes, we'll simulate some output
+                if (Math.random() > 0.7) {
+                    const demoLetters = ['A', 'B', 'C', 'D', 'E', 'HELLO', 'THANK YOU', 'PLEASE', 'YES', 'NO'];
+                    const randomText = demoLetters[Math.floor(Math.random() * demoLetters.length)];
+                    
+                    // Append new characters to the output
+                    const currentText = outputText.textContent;
+                    if (!currentText.includes(randomText)) {
+                        if (currentText === "Your translated text will appear here...") {
+                            outputText.textContent = randomText;
+                        } else {
+                            outputText.textContent += " " + randomText;
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error("Frame processing error:", error);
+            } finally {
+                isProcessing = false;
+            }
+        }
+        
+        // Copy text to clipboard
+        function copyText() {
+            const text = outputText.textContent;
+            if (text && text !== "Your translated text will appear here...") {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error("Could not copy text: ", err);
+                    });
+            }
+        }
+        
+        // Speak text using Web Speech API
+        function speakText() {
+            const text = outputText.textContent;
+            if (text && text !== "Your translated text will appear here...") {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    speechSynthesis.speak(utterance);
+                    
+                    speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
+                    speakBtn.disabled = true;
+                    
+                    utterance.onend = () => {
+                        speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> Speak';
+                        speakBtn.disabled = false;
+                    };
+                } else {
+                    alert("Text-to-speech is not supported in your browser.");
+                }
+            }
+        }
+        
+        // Clear the output text
+        function clearText() {
+            outputText.textContent = "";
+        }
+        
+        // Save text to memory
+        function saveText() {
+            const text = outputText.textContent;
+            if (text && text !== "Your translated text will appear here...") {
+                savedTexts.push(text);
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }, 2000);
+                
+                // In a real app, you might save to localStorage or a database
+                localStorage.setItem('savedTranslations', JSON.stringify(savedTexts));
+            }
+        }
+        
+        // Initialize charts when page loads
+        window.addEventListener('DOMContentLoaded', initCharts);
+        
+        // Initialize saved texts
+        function loadSavedTexts() {
+            const saved = localStorage.getItem('savedTranslations');
+            if (saved) {
+                savedTexts = JSON.parse(saved);
+            }
+        }
+        
+        loadSavedTexts();
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', stopWebcam);
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                
+                // Close mobile menu if open
+                mobileMenu.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
